@@ -1,0 +1,173 @@
+import React, { useState, useEffect } from 'react';
+import { dict } from './locales';
+import { Info, Globe, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
+
+export default function App() {
+  const [lang, setLang] = useState('zh');
+  const [data, setData] = useState(null);
+  const [activeModal, setActiveModal] = useState(null);
+
+  const t = dict[lang];
+
+  useEffect(() => {
+    fetch('./data.json')
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Failed to load metrics data:", err));
+  }, []);
+
+  const getStatusBg = (status) => {
+    switch (status) {
+      case 'GREEN': return 'bg-emerald-500/10 border-emerald-500 text-emerald-400';
+      case 'YELLOW': return 'bg-amber-500/10 border-amber-500 text-amber-400';
+      case 'RED': return 'bg-rose-500/10 border-rose-500 text-rose-400';
+      default: return 'bg-slate-800 border-slate-700 text-slate-400';
+    }
+  };
+
+  const getBarColor = (status) => {
+    switch (status) {
+      case 'GREEN': return 'bg-emerald-500';
+      case 'YELLOW': return 'bg-amber-500';
+      case 'RED': return 'bg-rose-500';
+      default: return 'bg-slate-600';
+    }
+  };
+
+  return (
+    <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto flex flex-col justify-between font-sans">
+      <div>
+        {/* 頂部導航與語言切換 */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800 gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+              <Activity className="text-emerald-400" /> {t.title}
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">{t.subtitle}</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500">
+              {t.lastUpdated}: {data ? new Date(data.lastUpdated).toLocaleDateString() : 'Syncing...'}
+            </span>
+            <button
+              onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 transition"
+            >
+              <Globe size={14} />
+              {lang === 'zh' ? 'English' : '繁體中文'}
+            </button>
+          </div>
+        </header>
+
+        {/* 斷路器橫幅通知 */}
+        {data && data.circuitBreaker ? (
+          <div className="my-6 p-4 rounded-xl bg-rose-500/20 border border-rose-500 flex items-center gap-3 text-rose-300">
+            <AlertTriangle className="flex-shrink-0" size={24} />
+            <p className="font-semibold text-sm">{t.circuitAlert}</p>
+          </div>
+        ) : (
+          <div className="my-6 p-3 rounded-xl bg-slate-800/40 border border-slate-700/60 flex items-center gap-2 text-slate-400 text-xs">
+            <ShieldCheck size={16} className="text-emerald-400" />
+            <span>{t.healthy}</span>
+          </div>
+        )}
+
+        {/* 指標卡片清單網格 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          {data && data.metrics.map((item) => {
+            const meta = t.metrics[item.id] || {};
+            return (
+              <div 
+                key={item.id} 
+                className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition"
+              >
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{meta.category}</span>
+                    <button 
+                      onClick={() => setActiveModal(item.id)}
+                      className="text-slate-400 hover:text-white transition p-1"
+                      aria-label={t.explainBtn}
+                    >
+                      <Info size={16} />
+                    </button>
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-100">{meta.name}</h3>
+                  <div className="flex items-baseline gap-2 my-2">
+                    <span className="text-2xl font-bold tracking-tight text-white">{item.value}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
+                    <div 
+                      className={`h-full ${getBarColor(item.status)}`} 
+                      style={{ width: `${Math.min(item.percentile, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className={`px-2 py-0.5 rounded-full border text-[10px] font-medium ${getStatusBg(item.status)}`}>
+                      {t.statusMap[item.status]}
+                    </span>
+                    <span className="text-slate-500 font-mono">{item.percentile}th %</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 三段式教育彈窗 (Modal) */}
+      {activeModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <h2 className="text-xl font-bold text-white mb-1">
+              {t.metrics[activeModal]?.name}
+            </h2>
+            <p className="text-xs font-mono text-emerald-400 uppercase tracking-widest mb-4">
+              {t.metrics[activeModal]?.category}
+            </p>
+
+            <div className="space-y-4 text-sm text-slate-300">
+              <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  💡 {lang === 'zh' ? '核心本質' : 'Core Intuition'}
+                </h4>
+                <p>{t.metrics[activeModal]?.intuition}</p>
+              </div>
+
+              <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  🎯 {lang === 'zh' ? '燈號觸發條件' : 'Trigger Rules'}
+                </h4>
+                <p>{t.metrics[activeModal]?.rule}</p>
+              </div>
+
+              <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  ⚠️ {lang === 'zh' ? '常見認知盲點' : 'Common Pitfalls'}
+                </h4>
+                <p className="text-rose-200/90">{t.metrics[activeModal]?.pitfall}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition"
+              >
+                {t.modalClose}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <footer className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-500">
+        Decoupled GitOps Architecture • Data pulled via FRED & Yahoo Finance
+      </footer>
+    </div>
+  );
+}
