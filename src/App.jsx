@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dict } from './locales';
-import { Info, Globe, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
+import { Info, Globe, AlertTriangle, ShieldCheck, Activity, AlertCircle } from 'lucide-react';
 
 export default function App() {
   const [lang, setLang] = useState('zh');
@@ -15,6 +15,32 @@ export default function App() {
       .then((json) => setData(json))
       .catch((err) => console.error("Failed to load metrics data:", err));
   }, []);
+
+  // 格式化英文序數 (51st, 62nd, 63rd, 74th)
+  const formatPercentile = (n) => {
+    if (lang === 'zh') return `${n}% 分位`;
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return `${n}${s[(v - 20) % 10] || s[v] || s[0]} %`;
+  };
+
+  // 動態判定當前宏觀情境 (Regime)
+  const getRegimeStatus = () => {
+    if (!data) return { text: "Loading...", style: "bg-slate-800 text-slate-400", icon: Activity };
+    if (data.circuitBreaker) {
+      return { text: t.regimes.RECESSION, style: "bg-rose-500/20 border-rose-500 text-rose-300", icon: AlertTriangle };
+    }
+    const redCount = data.metrics.filter(m => m.status === 'RED').length;
+    const greenCount = data.metrics.filter(m => m.status === 'GREEN').length;
+
+    if (redCount >= 2) {
+      return { text: t.regimes.STRAIN, style: "bg-amber-500/15 border-amber-500/80 text-amber-300", icon: AlertCircle };
+    }
+    if (greenCount >= 5) {
+      return { text: t.regimes.EXPANSION, style: "bg-emerald-500/15 border-emerald-500/80 text-emerald-300", icon: ShieldCheck };
+    }
+    return { text: t.regimes.NEUTRAL, style: "bg-slate-800/60 border-slate-700 text-slate-300", icon: ShieldCheck };
+  };
 
   const getStatusBg = (status) => {
     switch (status) {
@@ -34,10 +60,13 @@ export default function App() {
     }
   };
 
+  const regime = getRegimeStatus();
+  const RegimeIcon = regime.icon;
+
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto flex flex-col justify-between font-sans">
       <div>
-        {/* 頂部導航與語言切換 */}
+        {/* 頂部導航 */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -60,23 +89,18 @@ export default function App() {
           </div>
         </header>
 
-        {/* 斷路器橫幅通知 */}
-        {data && data.circuitBreaker ? (
-          <div className="my-6 p-4 rounded-xl bg-rose-500/20 border border-rose-500 flex items-center gap-3 text-rose-300">
-            <AlertTriangle className="flex-shrink-0" size={24} />
-            <p className="font-semibold text-sm">{t.circuitAlert}</p>
-          </div>
-        ) : (
-          <div className="my-6 p-3 rounded-xl bg-slate-800/40 border border-slate-700/60 flex items-center gap-2 text-slate-400 text-xs">
-            <ShieldCheck size={16} className="text-emerald-400" />
-            <span>{t.healthy}</span>
-          </div>
-        )}
+        {/* 動態宏觀情境 Banner */}
+        <div className={`my-6 p-4 rounded-xl border flex items-center gap-3 text-sm font-medium transition ${regime.style}`}>
+          <RegimeIcon className="flex-shrink-0" size={20} />
+          <p>{regime.text}</p>
+        </div>
 
-        {/* 指標卡片清單網格 */}
+        {/* 指標網格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           {data && data.metrics.map((item) => {
             const meta = t.metrics[item.id] || {};
+            const tagText = t.statusMap[meta.type]?.[item.status] || item.status;
+
             return (
               <div 
                 key={item.id} 
@@ -100,6 +124,7 @@ export default function App() {
                 </div>
 
                 <div>
+                  {/* 吸引力進度條 */}
                   <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
                     <div 
                       className={`h-full ${getBarColor(item.status)}`} 
@@ -108,9 +133,9 @@ export default function App() {
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className={`px-2 py-0.5 rounded-full border text-[10px] font-medium ${getStatusBg(item.status)}`}>
-                      {t.statusMap[item.status]}
+                      {tagText}
                     </span>
-                    <span className="text-slate-500 font-mono">{item.percentile}th %</span>
+                    <span className="text-slate-500 font-mono text-[11px]">{formatPercentile(item.percentile)}</span>
                   </div>
                 </div>
               </div>
@@ -119,7 +144,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* 三段式教育彈窗 (Modal) */}
+      {/* 教育彈窗 */}
       {activeModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
