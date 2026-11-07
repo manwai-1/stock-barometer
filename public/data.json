@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-07T16:40:15.664775+00:00",
+  "lastUpdated": "2026-11-07T16:50:49.148061+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
@@ -10,15 +10,15 @@
     },
     {
       "id": "tips_10y",
-      "value": "2.6%",
-      "status": "YELLOW",
-      "percentile": 55
+      "value": "2.60%",
+      "status": "RED",
+      "percentile": 86
     },
     {
       "id": "hy_spread",
-      "value": "3 bps",
+      "value": "348 bps",
       "status": "YELLOW",
-      "percentile": 38
+      "percentile": 24
     },
     {
       "id": "erp",
@@ -42,13 +42,13 @@
       "id": "move_index",
       "value": "92.77",
       "status": "GREEN",
-      "percentile": 35
+      "percentile": 40
     },
     {
       "id": "sahm_rule",
       "value": "0.25%",
       "status": "GREEN",
-      "percentile": 20
+      "percentile": 50
     }
   ]
 }
