@@ -16,7 +16,6 @@ export default function App() {
       .catch((err) => console.error("Failed to load metrics data:", err));
   }, []);
 
-  // 格式化英文序數 (51st, 62nd, 63rd, 74th)
   const formatPercentile = (n) => {
     if (lang === 'zh') return `${n}% 分位`;
     const s = ["th", "st", "nd", "rd"];
@@ -24,7 +23,6 @@ export default function App() {
     return `${n}${s[(v - 20) % 10] || s[v] || s[0]} %`;
   };
 
-  // 動態判定當前宏觀情境 (Regime)
   const getRegimeStatus = () => {
     if (!data) return { text: "Loading...", style: "bg-slate-800 text-slate-400", icon: Activity };
     if (data.circuitBreaker) {
@@ -33,10 +31,10 @@ export default function App() {
     const redCount = data.metrics.filter(m => m.status === 'RED').length;
     const greenCount = data.metrics.filter(m => m.status === 'GREEN').length;
 
-    if (redCount >= 2) {
+    if (redCount >= 3) {
       return { text: t.regimes.STRAIN, style: "bg-amber-500/15 border-amber-500/80 text-amber-300", icon: AlertCircle };
     }
-    if (greenCount >= 5) {
+    if (greenCount >= 7) {
       return { text: t.regimes.EXPANSION, style: "bg-emerald-500/15 border-emerald-500/80 text-emerald-300", icon: ShieldCheck };
     }
     return { text: t.regimes.NEUTRAL, style: "bg-slate-800/60 border-slate-700 text-slate-300", icon: ShieldCheck };
@@ -64,7 +62,7 @@ export default function App() {
   const RegimeIcon = regime.icon;
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto flex flex-col justify-between font-sans">
+    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto flex flex-col justify-between font-sans">
       <div>
         {/* 頂部導航 */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800 gap-4">
@@ -76,7 +74,7 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 font-mono">
               {t.lastUpdated}: {data ? new Date(data.lastUpdated).toLocaleDateString() : 'Syncing...'}
             </span>
             <button
@@ -95,8 +93,8 @@ export default function App() {
           <p>{regime.text}</p>
         </div>
 
-        {/* 指標網格 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        {/* 12 項全維度指標網格 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
           {data && data.metrics.map((item) => {
             const meta = t.metrics[item.id] || {};
             const tagText = t.statusMap[meta.type]?.[item.status] || item.status;
@@ -118,13 +116,15 @@ export default function App() {
                     </button>
                   </div>
                   <h3 className="text-base font-semibold text-slate-100">{meta.name}</h3>
-                  <div className="flex items-baseline gap-2 my-2">
+                  <div className="flex flex-col my-2">
                     <span className="text-2xl font-bold tracking-tight text-white">{item.value}</span>
+                    {item.subValue && (
+                      <span className="text-[11px] text-amber-400 font-mono mt-0.5">{item.subValue}</span>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  {/* 吸引力進度條 */}
                   <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
                     <div 
                       className={`h-full ${getBarColor(item.status)}`} 
@@ -146,8 +146,8 @@ export default function App() {
 
       {/* 教育彈窗 */}
       {activeModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-white mb-1">
               {t.metrics[activeModal]?.name}
             </h2>
@@ -162,6 +162,20 @@ export default function App() {
                 </h4>
                 <p>{t.metrics[activeModal]?.intuition}</p>
               </div>
+
+              {/* 特殊指引：針對 ERP 彈出本益比選股尺規 */}
+              {activeModal === 'erp' && (
+                <div className="bg-slate-800/80 p-3 rounded-lg border border-amber-500/40">
+                  <h4 className="text-xs font-semibold text-amber-300 uppercase tracking-wider mb-2">
+                    📊 {lang === 'zh' ? '實戰 PE 估值尺規 (當前利率環境下)' : 'Practical PE Valuation Benchmarks'}
+                  </h4>
+                  <ul className="text-xs space-y-1 text-slate-300">
+                    <li>• <strong className="text-emerald-400">PE &le; 16x</strong>: {lang === 'zh' ? '高安全邊際，股票相對於國債具備超額補償' : 'High safety margin; solid equity compensation'}</li>
+                    <li>• <strong className="text-amber-400">PE 16x ~ 18.5x</strong>: {lang === 'zh' ? '合理估值區間，承擔波動能獲合理收益' : 'Fair valuation range'}</li>
+                    <li>• <strong className="text-rose-400">PE &gt; 22.7x</strong>: {lang === 'zh' ? '估值透支，收益率劣於無風險美國國債' : 'Overvalued; bond yield strictly beats earnings yield'}</li>
+                  </ul>
+                </div>
+              )}
 
               <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
                 <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -190,8 +204,8 @@ export default function App() {
         </div>
       )}
 
-      <footer className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-500">
-        Decoupled GitOps Architecture • Data pulled via FRED & Yahoo Finance
+      <footer className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-500 font-mono">
+        12-Factor Tactical Allocation Matrix • Automated by GitHub Actions & Vercel
       </footer>
     </div>
   );
