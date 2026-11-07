@@ -1,52 +1,88 @@
 {
-  "lastUpdated": "2026-11-07T17:27:32.271867+00:00",
+  "lastUpdated": "2026-11-07T17:44:46.479045+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
       "id": "net_liquidity",
       "value": "5.79T",
+      "subValue": null,
       "status": "YELLOW",
       "percentile": 51
     },
     {
       "id": "tips_10y",
       "value": "2.60%",
+      "subValue": null,
       "status": "RED",
       "percentile": 13
     },
     {
       "id": "hy_spread",
       "value": "348 bps",
+      "subValue": null,
       "status": "YELLOW",
       "percentile": 29
     },
     {
       "id": "erp",
       "value": "-0.57%",
+      "subValue": "PE: 23.4x (上限: 15.8x)",
       "status": "RED",
       "percentile": 10
     },
     {
       "id": "rsp_spy",
       "value": "0.2938",
+      "subValue": null,
       "status": "GREEN",
       "percentile": 56
     },
     {
-      "id": "sp500_200ma",
-      "value": "63.6%",
+      "id": "sp100_200ma",
+      "value": "66.7%",
+      "subValue": "S&P 100 樣本庫",
       "status": "GREEN",
-      "percentile": 63
+      "percentile": 66
+    },
+    {
+      "id": "smh_spy",
+      "value": "0.631",
+      "subValue": null,
+      "status": "GREEN",
+      "percentile": 90
+    },
+    {
+      "id": "xly_xlp",
+      "value": "1.305",
+      "subValue": null,
+      "status": "RED",
+      "percentile": 10
+    },
+    {
+      "id": "copper_gold",
+      "value": "101.1",
+      "subValue": null,
+      "status": "YELLOW",
+      "percentile": 32
+    },
+    {
+      "id": "vix_structure",
+      "value": "1.042",
+      "subValue": null,
+      "status": "RED",
+      "percentile": 26
     },
     {
       "id": "move_index",
       "value": "92.77",
+      "subValue": null,
       "status": "GREEN",
       "percentile": 59
     },
     {
       "id": "sahm_rule",
       "value": "0.25%",
+      "subValue": null,
       "status": "GREEN",
       "percentile": 50
     }
