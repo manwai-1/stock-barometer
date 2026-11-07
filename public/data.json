@@ -1,24 +1,24 @@
 {
-  "lastUpdated": "2026-11-07T17:08:49.282906+00:00",
+  "lastUpdated": "2026-11-07T17:27:32.271867+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
       "id": "net_liquidity",
       "value": "5.79T",
-      "status": "GREEN",
+      "status": "YELLOW",
       "percentile": 51
     },
     {
       "id": "tips_10y",
       "value": "2.60%",
       "status": "RED",
-      "percentile": 86
+      "percentile": 13
     },
     {
       "id": "hy_spread",
       "value": "348 bps",
       "status": "YELLOW",
-      "percentile": 24
+      "percentile": 29
     },
     {
       "id": "erp",
@@ -30,7 +30,7 @@
       "id": "rsp_spy",
       "value": "0.2938",
       "status": "GREEN",
-      "percentile": 65
+      "percentile": 56
     },
     {
       "id": "sp500_200ma",
@@ -42,7 +42,7 @@
       "id": "move_index",
       "value": "92.77",
       "status": "GREEN",
-      "percentile": 40
+      "percentile": 59
     },
     {
       "id": "sahm_rule",
