@@ -6,6 +6,8 @@ export const dict = {
     explainBtn: "指標解讀",
     modalClose: "關閉",
     sparklineLabel: "近 30 日走勢",
+    fallbackBadge: "離線預設值",
+    fallbackHint: "API 數據源未回應，當前數值為歷史基準預設值，僅供架構參考",
     regimes: {
       RECESSION: "🚨 衰退斷路已啟動：薩姆指標超標，建議凍結所有權益增配，轉向純防禦。",
       STRAIN: "⚠️ 結構失衡預警：實質利率高企且 ERP 轉負，估值透支，建議維持基底底倉但暫緩戰術追高。",
@@ -135,6 +137,8 @@ export const dict = {
     explainBtn: "Explain",
     modalClose: "Close",
     sparklineLabel: "30-Day Trend",
+    fallbackBadge: "Fallback Base",
+    fallbackHint: "Live API unavailable. Value is a fallback baseline for layout integrity.",
     regimes: {
       RECESSION: "🚨 Recession Breaker Triggered: Sahm Rule breached. Freeze all equity additions; rotate to capital preservation.",
       STRAIN: "⚠️ Valuation Strain: Real yields elevated and ERP inverted. Retain baseline holdings; suspend tactical overweights.",

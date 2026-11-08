@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { dict } from './locales';
 import { Info, Globe, AlertTriangle, ShieldCheck, Activity, AlertCircle } from 'lucide-react';
 
-// 純 SVG 輕量化 30 天走勢折線圖組件 (包含末端動態錨點)
+// 純 SVG 輕量化 30 天走勢折線圖組件
 function Sparkline({ data = [], status = 'GREEN', width = 84, height = 26 }) {
   if (!data || data.length < 2) return null;
 
@@ -13,9 +13,9 @@ function Sparkline({ data = [], status = 'GREEN', width = 84, height = 26 }) {
   const h = height - padding * 2;
 
   const colorMap = {
-    GREEN: '#10b981', // emerald-500
-    YELLOW: '#f59e0b', // amber-500
-    RED: '#f43f5e'    // rose-500
+    GREEN: '#10b981',
+    YELLOW: '#f59e0b',
+    RED: '#f43f5e'
   };
   const strokeColor = colorMap[status] || '#94a3b8';
 
@@ -151,7 +151,18 @@ export default function App() {
               >
                 <div>
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{meta.category}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{meta.category}</span>
+                      {/* 數據血統稽核標籤：當檢測到預設值時亮起警示 */}
+                      {item.isFallback && (
+                        <span 
+                          title={t.fallbackHint || "Fallback value in use"}
+                          className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-0.5 animate-pulse"
+                        >
+                          ⚠️ {t.fallbackBadge || (lang === 'zh' ? '離線預設值' : 'Fallback Base')}
+                        </span>
+                      )}
+                    </div>
                     <button 
                       onClick={() => setActiveModal(item.id)}
                       className="text-slate-400 hover:text-white transition p-1"
@@ -160,6 +171,7 @@ export default function App() {
                       <Info size={16} />
                     </button>
                   </div>
+                  
                   <h3 className="text-base font-semibold text-slate-100">{meta.name}</h3>
                   
                   {/* 數值 + 30 天微型走勢折線圖並排 */}
