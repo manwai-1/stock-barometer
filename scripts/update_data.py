@@ -102,7 +102,15 @@ def run_pipeline():
     cper_s, cper_fail = fetch_series("CPER")
     gld_s, gld_fail = fetch_series("GLD")
     vix_s, vix_fail = fetch_series("^VIX")
+    # 優先嘗試 ^VIX3M，若 Yahoo 返回空值則自動切換歷史別名 ^VXV
     vix3m_s, vix3m_fail = fetch_series("^VIX3M")
+    if vix3m_fail:
+        vix3m_s, vix3m_fail = fetch_series("^VXV")
+        
+    # 若期權指數依然受限，以 VIX 的 30 日均線中樞作為期限結構代理基準
+    if vix3m_fail and not vix_s.empty and len(vix_s) >= 30:
+        vix3m_s = vix_s.rolling(window=30).mean().bfill()
+        vix3m_fail = False
     move_s, move_fail = fetch_series("^MOVE")
 
     # SPY PE 與 ERP
