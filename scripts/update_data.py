@@ -156,7 +156,7 @@ def run_pipeline():
     else:
         disparity_latest, disparity_sparkline = 1.8, [1.8] * 30
 
-    # 標普權值廣度
+    # 標普核心權值廣度
     core_tickers = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "BRK-B", "JPM", "V", "UNH", "XOM", "COST", "HD", "PG"]
     breadth_failed = False
     try:
@@ -169,7 +169,7 @@ def run_pipeline():
 
     circuit_breaker = sahm_latest >= 0.50
 
-    # 4. 組裝 Payload，每個指標均帶有 isFallback 旗標
+    # 4. 組裝 Payload（已將 copper_gold_ratio 修正為 copper_gold_latest）
     metrics_payload = [
         {
             "id": "net_liquidity",
@@ -256,7 +256,7 @@ def run_pipeline():
             "id": "copper_gold",
             "value": str(copper_gold_latest),
             "subValue": None,
-            "status": "GREEN" if copper_gold_ratio > 115 else ("YELLOW" if copper_gold_ratio >= 95 else "RED"),
+            "status": "GREEN" if copper_gold_latest > 115 else ("YELLOW" if copper_gold_latest >= 95 else "RED"),
             "percentile": int(min(max(((copper_gold_latest - 85) / 50) * 100, 10), 90)),
             "sparkline": copper_gold_sparkline,
             "isFallback": bool(copper_gold_failed)
