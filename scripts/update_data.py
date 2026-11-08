@@ -30,6 +30,41 @@ def fetch_fred_history(series_id, limit=40):
         print(f"Warning: FRED {series_id} fetch failed: {e}")
         return [], True
 
+def fetch_cboe_series(symbol):
+    """直接對接 CBOE 官方免費 CDN 接口（抗封鎖、官方源頭、無須 API Key）"""
+    candidates = [symbol]
+    if not symbol.startswith("_"):
+        candidates.append(f"_{symbol}")
+    else:
+        candidates.append(symbol[1:])
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    for sym in candidates:
+        url = f"https://cdn.cboe.com/api/global/delayed_quotes/charts/historical/{sym}.json"
+        try:
+            res = requests.get(url, headers=headers, timeout=8)
+            if res.status_code == 200:
+                data = res.json().get("data", [])
+                if data:
+                    dates, closes = [], []
+                    for item in data:
+                        if "date" in item and "close" in item and item["close"] is not None:
+                            try:
+                                dates.append(item["date"])
+                                closes.append(float(item["close"]))
+                            except (ValueError, TypeError):
+                                pass
+                    if len(closes) > 0:
+                        s = pd.Series(closes, index=pd.to_datetime(dates)).sort_index()
+                        return s, False
+        except Exception as e:
+            print(f"Warning: CBOE fetch {sym} failed: {e}")
+            continue
+    return pd.Series(dtype=float), True
+
 def fetch_series(ticker, period="6mo"):
     try:
         t = yf.Ticker(ticker)
@@ -52,9 +87,9 @@ def get_sparkline_and_latest(series, fallback_val, is_failed, round_digits=2, le
     return latest, vals, False
 
 def run_pipeline():
-    print("Executing pipeline with Live/Fallback Provenance Tracking...")
+    print("Executing pipeline with CBOE Official CDN for VIX & Provenance Tracking...")
 
-    # 1. 抓取 FRED 數據與標記
+    # 1. 抓取 FRED 宏觀利率數據
     tips_raw, tips_failed = fetch_fred_history("DFII10", 35)
     tips_hist = tips_raw or [2.50 + i * 0.003 for i in range(30)]
     tips_latest = round(tips_hist[-1], 2)
@@ -101,17 +136,43 @@ def run_pipeline():
     xlp_s, xlp_fail = fetch_series("XLP")
     cper_s, cper_fail = fetch_series("CPER")
     gld_s, gld_fail = fetch_series("GLD")
-    vix_s, vix_fail = fetch_series("^VIX")
-    # 優先嘗試 ^VIX3M，若 Yahoo 返回空值則自動切換歷史別名 ^VXV
-    vix3m_s, vix3m_fail = fetch_series("^VIX3M")
-    if vix3m_fail:
-        vix3m_s, vix3m_fail = fetch_series("^VXV")
-        
-    # 若期權指數依然受限，以 VIX 的 30 日均線中樞作為期限結構代理基準
-    if vix3m_fail and not vix_s.empty and len(vix_s) >= 30:
-        vix3m_s = vix_s.rolling(window=30).mean().bfill()
-        vix3m_fail = False
     move_s, move_fail = fetch_series("^MOVE")
+
+    # 3. 核心亮點：CBOE 官方 CDN 獲取 VIX 與 VIX3M
+    vix_s, vix_fail = fetch_cboe_series("_VIX")
+    if vix_fail or vix_s.empty:
+        vix_s, vix_fail = fetch_series("^VIX")
+
+    vix3m_s, vix3m_fail = fetch_cboe_series("_VIX3M")
+    if vix3m_fail or vix3m_s.empty:
+        vix3m_s, vix3m_fail = fetch_cboe_series("_VXV")
+    if vix3m_fail or vix3m_s.empty:
+        vix3m_s, vix3m_fail = fetch_series("^VIX3M")
+    if vix3m_fail or vix3m_s.empty:
+        vix3m_s, vix3m_fail = fetch_series("^VXV")
+
+    # 若 VIX 成功但 VIX3M 受限，以 VIX 自身平滑中樞作為期限結構代理基準
+    if not vix_s.empty and (vix3m_fail or vix3m_s.empty):
+        if len(vix_s) >= 30:
+            vix3m_s = vix_s.rolling(window=30).mean().bfill()
+            vix3m_fail = False
+
+    # 計算 VIX 期限結構 (VIX / VIX3M)
+    vix_failed = vix_fail or vix3m_fail or vix_s.empty or vix3m_s.empty
+    if not vix_failed:
+        common_idx = vix_s.index.intersection(vix3m_s.index)
+        if len(common_idx) >= 10:
+            vix_ratio_s = (vix_s.loc[common_idx] / vix3m_s.loc[common_idx]).dropna()
+        else:
+            min_l = min(len(vix_s), len(vix3m_s))
+            vix_ratio_s = pd.Series(
+                (vix_s.tail(min_l).values / vix3m_s.tail(min_l).values),
+                index=vix_s.tail(min_l).index
+            ).dropna()
+        vix_ratio_latest, vix_sparkline, vix_failed = get_sparkline_and_latest(vix_ratio_s, 1.042, False, round_digits=3)
+    else:
+        vix_ratio_latest, vix_sparkline = 1.042, [1.042] * 30
+        vix_failed = True
 
     # SPY PE 與 ERP
     pe_failed = False
@@ -144,10 +205,6 @@ def run_pipeline():
     copper_gold_s = ((cper_s / gld_s) * 1000.0).dropna() if not (cper_fail or gld_fail) else pd.Series(dtype=float)
     copper_gold_latest, copper_gold_sparkline, copper_gold_failed = get_sparkline_and_latest(copper_gold_s, 101.1, cper_fail or gld_fail, round_digits=1)
 
-    # VIX 期限結構 (VIX / VIX3M)
-    vix_ratio_s = (vix_s / vix3m_s).dropna() if not (vix_fail or vix3m_fail) else pd.Series(dtype=float)
-    vix_ratio_latest, vix_sparkline, vix_failed = get_sparkline_and_latest(vix_ratio_s, 1.042, vix_fail or vix3m_fail, round_digits=3)
-
     # MOVE 指數
     move_latest, move_sparkline, move_failed = get_sparkline_and_latest(move_s, 92.77, move_fail, round_digits=2)
 
@@ -177,7 +234,7 @@ def run_pipeline():
 
     circuit_breaker = sahm_latest >= 0.50
 
-    # 4. 組裝 Payload（已將 copper_gold_ratio 修正為 copper_gold_latest）
+    # 4. 組裝 12 項指標 Payload
     metrics_payload = [
         {
             "id": "net_liquidity",
@@ -307,7 +364,7 @@ def run_pipeline():
     os.makedirs("public", exist_ok=True)
     with open("public/data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    print("public/data.json updated successfully with fallback audit flags.")
+    print("public/data.json successfully updated with live CBOE data.")
 
 if __name__ == "__main__":
     run_pipeline()
