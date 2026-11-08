@@ -5,6 +5,7 @@ export const dict = {
     lastUpdated: "最後數據更新",
     explainBtn: "指標解讀",
     modalClose: "關閉",
+    sparklineLabel: "近 30 日走勢",
     regimes: {
       RECESSION: "🚨 衰退斷路已啟動：薩姆指標超標，建議凍結所有權益增配，轉向純防禦。",
       STRAIN: "⚠️ 結構失衡預警：實質利率高企且 ERP 轉負，估值透支，建議維持基底底倉但暫緩戰術追高。",
@@ -86,12 +87,12 @@ export const dict = {
         pitfall: "半導體比率若跌破半年線支撐，通常領先納斯達克大盤 1~2 個月出現波段回檔。"
       },
       xly_xlp: {
-        name: "奢侈 vs 求生消費比率",
+        name: "消費偏好 50MA 偏離度",
         category: "真實風險偏好",
         type: "momentum",
-        intuition: "非必需消費 (XLY) 除以必需消費 (XLP)。衡量市場是在定價「跑車奢華消費」還是「囤積牙膏麵包」。",
-        rule: "> 2.6 為高度樂觀 Risk-On（綠燈）；2.3~2.6 為均衡（黃燈）；< 2.3 顯示全面防禦（紅燈）。",
-        pitfall: "大盤創新高但可選消費比率持續背離走低，代表中產階級消費力道出現隱性疲態。"
+        intuition: "可選消費 (XLY) / 必需消費 (XLP) 比率相對於其 50 日均線的偏離幅度，衡量市場是在擁抱擴張還是抱團防禦。",
+        rule: "> +1.5% 為高度進攻 Risk-On（綠燈）；-1.5%~+1.5% 為中性均衡（黃燈）；< -1.5% 顯示資金加速轉向防禦（紅燈）。",
+        pitfall: "偏離度急速衝破 +6% 往往意味著短期投機透支；跌破 -5% 則容易引發空頭衰竭反彈。"
       },
       copper_gold: {
         name: "銅金比 (Copper/Gold)",
@@ -133,6 +134,7 @@ export const dict = {
     lastUpdated: "Last Synced",
     explainBtn: "Explain",
     modalClose: "Close",
+    sparklineLabel: "30-Day Trend",
     regimes: {
       RECESSION: "🚨 Recession Breaker Triggered: Sahm Rule breached. Freeze all equity additions; rotate to capital preservation.",
       STRAIN: "⚠️ Valuation Strain: Real yields elevated and ERP inverted. Retain baseline holdings; suspend tactical overweights.",
@@ -214,12 +216,12 @@ export const dict = {
         pitfall: "A breakdown in chip leadership regularly front-runs Nasdaq index corrections by 4 to 8 weeks."
       },
       xly_xlp: {
-        name: "Luxury vs Survival Ratio",
+        name: "Consumer Bias vs 50D SMA",
         category: "Risk-On Sentiment",
         type: "momentum",
-        intuition: "Consumer Discretionary (XLY) divided by Consumer Staples (XLP). Gauges appetite for luxury versus defensive staples.",
-        rule: "> 2.6 reflects robust Risk-On (Green); 2.3~2.6 is neutral (Yellow); < 2.3 signals risk-off capital preservation (Red).",
-        pitfall: "Market index gains divergence against falling XLY/XLP highlights weakening underlying consumer health."
+        intuition: "Disparity of XLY/XLP ratio against its 50-day SMA. Captures whether capital is chasing risk-on expansion or retreating to defensive staples.",
+        rule: "> +1.5% indicates Risk-On expansion (Green); -1.5%~+1.5% is neutral (Yellow); < -1.5% signals defensive flocking (Red).",
+        pitfall: "Extreme surges past +6% mark short-term overextension; drops below -5% trigger oversold mean reversions."
       },
       copper_gold: {
         name: "Copper / Gold Ratio",

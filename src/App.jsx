@@ -2,6 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { dict } from './locales';
 import { Info, Globe, AlertTriangle, ShieldCheck, Activity, AlertCircle } from 'lucide-react';
 
+// 純 SVG 輕量化 30 天走勢折線圖組件 (包含末端動態錨點)
+function Sparkline({ data = [], status = 'GREEN', width = 84, height = 26 }) {
+  if (!data || data.length < 2) return null;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min === 0 ? 1 : max - min;
+  const padding = 3;
+  const h = height - padding * 2;
+
+  const colorMap = {
+    GREEN: '#10b981', // emerald-500
+    YELLOW: '#f59e0b', // amber-500
+    RED: '#f43f5e'    // rose-500
+  };
+  const strokeColor = colorMap[status] || '#94a3b8';
+
+  const points = data
+    .map((val, idx) => {
+      const x = (idx / (data.length - 1)) * width;
+      const y = height - padding - ((val - min) / range) * h;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  const lastVal = data[data.length - 1];
+  const lastX = width;
+  const lastY = height - padding - ((lastVal - min) / range) * h;
+
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      <polyline
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+      <circle cx={lastX} cy={lastY} r="2.5" fill={strokeColor} />
+    </svg>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('zh');
   const [data, setData] = useState(null);
@@ -93,11 +137,12 @@ export default function App() {
           <p>{regime.text}</p>
         </div>
 
-        {/* 12 項全維度指標網格 */}
+        {/* 12 項指標網格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
           {data && data.metrics.map((item) => {
             const meta = t.metrics[item.id] || {};
             const tagText = t.statusMap[meta.type]?.[item.status] || item.status;
+            const subText = typeof item.subValue === 'object' && item.subValue !== null ? item.subValue[lang] : item.subValue;
 
             return (
               <div 
@@ -116,11 +161,18 @@ export default function App() {
                     </button>
                   </div>
                   <h3 className="text-base font-semibold text-slate-100">{meta.name}</h3>
-                  <div className="flex flex-col my-2">
-                    <span className="text-2xl font-bold tracking-tight text-white">{item.value}</span>
-                    {item.subValue && (
-                      <span className="text-[11px] text-amber-400 font-mono mt-0.5">{item.subValue}</span>
-                    )}
+                  
+                  {/* 數值 + 30 天微型走勢折線圖並排 */}
+                  <div className="flex items-center justify-between my-2.5">
+                    <div>
+                      <span className="text-2xl font-bold tracking-tight text-white">{item.value}</span>
+                      {subText && (
+                        <span className="block text-[11px] text-amber-400 font-mono mt-0.5">{subText}</span>
+                      )}
+                    </div>
+                    <div className="pl-2" title={t.sparklineLabel}>
+                      <Sparkline data={item.sparkline} status={item.status} width={82} height={26} />
+                    </div>
                   </div>
                 </div>
 
@@ -163,7 +215,6 @@ export default function App() {
                 <p>{t.metrics[activeModal]?.intuition}</p>
               </div>
 
-              {/* 特殊指引：針對 ERP 彈出本益比選股尺規 */}
               {activeModal === 'erp' && (
                 <div className="bg-slate-800/80 p-3 rounded-lg border border-amber-500/40">
                   <h4 className="text-xs font-semibold text-amber-300 uppercase tracking-wider mb-2">
@@ -205,7 +256,7 @@ export default function App() {
       )}
 
       <footer className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-500 font-mono">
-        12-Factor Tactical Allocation Matrix • Automated by GitHub Actions & Vercel
+        12-Factor Tactical Matrix • 30D Trend Sparklines • Powered by GitHub Actions & Vercel
       </footer>
     </div>
   );

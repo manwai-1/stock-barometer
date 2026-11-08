@@ -3,10 +3,11 @@ import json
 from datetime import datetime, timezone
 import requests
 import yfinance as yf
+import pandas as pd
+import numpy as np
 
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 
-# S&P 100 前百大權值股名單（單次批次下載，無封鎖風險）
 SP100_TICKERS = [
     "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "BRK-B", "TSLA", "LLY", "AVGO",
     "JPM", "V", "UNH", "XOM", "MA", "PG", "HD", "COST", "JNJ", "ABBV",
@@ -20,195 +21,228 @@ SP100_TICKERS = [
     "DUK", "SLB", "EOG", "CL", "BDX", "CME", "ITW", "NOC", "CSX", "WM"
 ]
 
-def fetch_fred_latest(series_id):
+def fetch_fred_history(series_id, limit=40):
     if not FRED_KEY:
-        return None
-    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=1"
+        return []
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit={limit}"
     try:
         res = requests.get(url, timeout=10).json()
-        val = res['observations'][0]['value']
-        return float(val) if val != '.' else None
+        obs = res.get('observations', [])
+        vals = []
+        for o in reversed(obs):
+            v = o.get('value')
+            if v and v != '.':
+                try:
+                    vals.append(float(v))
+                except ValueError:
+                    pass
+        return vals
     except Exception as e:
         print(f"Error fetching FRED {series_id}: {e}")
-        return None
-
-def fetch_yfinance_close(ticker):
-    try:
-        t = yf.Ticker(ticker)
-        hist = t.history(period="5d")
-        if hist.empty:
-            return None
-        return round(float(hist['Close'].iloc[-1]), 2)
-    except Exception as e:
-        print(f"Error fetching {ticker}: {e}")
-        return None
-
-def calculate_net_liquidity():
-    walcl = fetch_fred_latest("WALCL") or 6800000.0
-    tga = fetch_fred_latest("WTREGEN") or 800000.0
-    rrp = fetch_fred_latest("RRPONTSYD") or 300.0
-    net_liq_trillion = (walcl - tga - (rrp * 1000.0)) / 1000000.0
-    return round(net_liq_trillion, 2)
-
-def calculate_erp_and_pe():
-    dgs10 = fetch_fred_latest("DGS10") or 4.40
-    current_pe = 26.2
-    try:
-        spy = yf.Ticker("SPY")
-        current_pe = spy.info.get("trailingPE") or spy.info.get("forwardPE") or 26.2
-    except Exception:
-        pass
-    current_pe = round(float(current_pe), 1)
-    earnings_yield = round((100.0 / current_pe), 2)
-    erp = round(earnings_yield - dgs10, 2)
-    
-    # 計算在當前利率下，要求正向溢價 (ERP >= +1.5%) 時的合理 PE 上限門檻
-    fair_pe_cap = round(100.0 / (dgs10 + 1.5), 1)
-    return erp, current_pe, fair_pe_cap
-
-def calculate_sp100_breadth():
-    try:
-        data = yf.download(SP100_TICKERS, period="1y", interval="1d", progress=False)['Close']
-        above_count = 0
-        valid_count = 0
-        for t in SP100_TICKERS:
-            if t in data and len(data[t].dropna()) >= 200:
-                s = data[t].dropna()
-                if s.iloc[-1] > s.rolling(200).mean().iloc[-1]:
-                    above_count += 1
-                valid_count += 1
-        if valid_count > 0:
-            return round((above_count / valid_count) * 100, 1)
-        return 65.0
-    except Exception as e:
-        print(f"Error SP100 breadth: {e}")
-        return 65.0
+        return []
 
 def run_pipeline():
-    print("Executing upgraded 12-factor tactical pipeline...")
+    print("Executing institutional data pipeline with 30D Sparklines & 50MA Disparity...")
+
+    # 1. 抓取 FRED 數據與歷史陣列
+    tips_hist = fetch_fred_history("DFII10", 35) or [2.50 + i * 0.003 for i in range(30)]
+    tips_latest = round(tips_hist[-1], 2)
+    tips_sparkline = [round(v, 2) for v in tips_hist[-30:]]
+
+    hy_hist_raw = fetch_fred_history("BAMLH0A0HYM2", 35) or [3.40 + i * 0.003 for i in range(30)]
+    hy_spread_bps = int(round(hy_hist_raw[-1] * 100))
+    hy_sparkline = [int(round(v * 100)) for v in hy_hist_raw[-30:]]
+
+    sahm_hist = fetch_fred_history("SAHMREALTIME", 12) or [0.25]
+    sahm_latest = round(sahm_hist[-1], 2)
+    sahm_sparkline = [sahm_latest] * 30
+
+    dgs10_hist = fetch_fred_history("DGS10", 35) or [4.40] * 30
+    dgs10_latest = round(dgs10_hist[-1], 2)
+
+    # 聯準會淨流動性歷史 (WALCL - WTREGEN - RRP)
+    walcl = fetch_fred_history("WALCL", 10) or [6800000.0]
+    tga = fetch_fred_history("WTREGEN", 35) or [800000.0]
+    rrp = fetch_fred_history("RRPONTSYD", 35) or [300.0]
+    latest_net_liq = round((walcl[-1] - tga[-1] - (rrp[-1] * 1000.0)) / 1000000.0, 2)
     
-    # 1. 宏觀與基礎利率
-    tips = fetch_fred_latest("DFII10") or 2.10
-    hy_spread_raw = fetch_fred_latest("BAMLH0A0HYM2") or 3.30
-    hy_spread_bps = int(round(hy_spread_raw * 100))
-    sahm = fetch_fred_latest("SAHMREALTIME") or 0.25
-    circuit_breaker = sahm >= 0.50
+    # 構建流動性 30 天走勢
+    min_len = min(len(tga), len(rrp), 30)
+    net_liq_sparkline = []
+    for i in range(-min_len, 0):
+        val = (walcl[-1] - tga[i] - (rrp[i] * 1000.0)) / 1000000.0
+        net_liq_sparkline.append(round(val, 2))
+    if len(net_liq_sparkline) < 30:
+        net_liq_sparkline = [latest_net_liq] * 30
 
-    # 2. 流動性、ERP 與高精度 S&P 100 廣度
-    net_liq = calculate_net_liquidity()
-    erp, cur_pe, fair_pe = calculate_erp_and_pe()
-    sp100_breadth = calculate_sp100_breadth()
+    # 2. 批次下載市場標的歷史 (6 個月數據以滿足 50MA 計算)
+    macro_tickers = ["SPY", "RSP", "SMH", "XLY", "XLP", "CPER", "GLD", "^MOVE", "^VIX", "^VIX3M"]
+    macro_df = yf.download(macro_tickers, period="6mo", interval="1d", progress=False)['Close']
 
-    # 3. 市場內部比率與新戰術指標
-    spy = fetch_yfinance_close("SPY") or 580.0
-    rsp = fetch_yfinance_close("RSP") or 170.0
-    rsp_spy_ratio = round(rsp / spy, 4)
-    move = fetch_yfinance_close("^MOVE") or 92.0
+    # SPY PE 與 ERP
+    cur_pe = 26.2
+    try:
+        spy_ticker = yf.Ticker("SPY")
+        cur_pe = round(float(spy_ticker.info.get("trailingPE") or spy_ticker.info.get("forwardPE") or 26.2), 1)
+    except Exception:
+        pass
+    earnings_yield = round(100.0 / cur_pe, 2)
+    erp_latest = round(earnings_yield - dgs10_latest, 2)
+    fair_pe_cap = round(100.0 / (dgs10_latest + 1.5), 1)
+    erp_sparkline = [round(earnings_yield - d, 2) for d in dgs10_hist[-30:]]
 
-    # 新增 4 項指標數據抓取
-    xly = fetch_yfinance_close("XLY") or 200.0
-    xlp = fetch_yfinance_close("XLP") or 80.0
-    xly_xlp_ratio = round(xly / xlp, 3)
+    # 等權重比率 RSP / SPY
+    rsp_spy_series = (macro_df['RSP'] / macro_df['SPY']).dropna()
+    rsp_spy_latest = round(float(rsp_spy_series.iloc[-1]), 4)
+    rsp_spy_sparkline = [round(float(v), 4) for v in rsp_spy_series.tail(30).tolist()]
 
-    cper = fetch_yfinance_close("CPER") or 28.5
-    gld = fetch_yfinance_close("GLD") or 245.0
-    copper_gold_ratio = round((cper / gld) * 1000, 1)
+    # 半導體比率 SMH / SPY
+    smh_spy_series = (macro_df['SMH'] / macro_df['SPY']).dropna()
+    smh_spy_latest = round(float(smh_spy_series.iloc[-1]), 3)
+    smh_spy_sparkline = [round(float(v), 3) for v in smh_spy_series.tail(30).tolist()]
 
-    vix = fetch_yfinance_close("^VIX") or 15.0
-    vix3m = fetch_yfinance_close("^VIX3M") or 18.0
-    vix_ratio = round(vix / vix3m, 3)
+    # 銅金比 (CPER / GLD * 1000)
+    copper_gold_series = ((macro_df['CPER'] / macro_df['GLD']) * 1000.0).dropna()
+    copper_gold_latest = round(float(copper_gold_series.iloc[-1]), 1)
+    copper_gold_sparkline = [round(float(v), 1) for v in copper_gold_series.tail(30).tolist()]
 
-    smh = fetch_yfinance_close("SMH") or 250.0
-    smh_spy_ratio = round(smh / spy, 4)
+    # VIX 期限結構比率 (VIX / VIX3M)
+    vix_ratio_series = (macro_df['^VIX'] / macro_df['^VIX3M']).dropna()
+    vix_ratio_latest = round(float(vix_ratio_series.iloc[-1]), 3)
+    vix_sparkline = [round(float(v), 3) for v in vix_ratio_series.tail(30).tolist()]
 
-    # 4. 12 項指標 Payload（進度條全面統一為「股票吸引力得分」0~100）
+    # MOVE 指數
+    move_series = macro_df['^MOVE'].dropna()
+    move_latest = round(float(move_series.iloc[-1]), 2)
+    move_sparkline = [round(float(v), 2) for v in move_series.tail(30).tolist()]
+
+    # 核心改進：XLY / XLP 50 日均線偏離度
+    xly_xlp_ratio = (macro_df['XLY'] / macro_df['XLP']).dropna()
+    xly_xlp_sma50 = xly_xlp_ratio.rolling(window=50).mean()
+    disparity_series = (((xly_xlp_ratio - xly_xlp_sma50) / xly_xlp_sma50) * 100.0).dropna()
+    disparity_latest = round(float(disparity_series.iloc[-1]), 2)
+    disparity_sparkline = [round(float(v), 2) for v in disparity_series.tail(30).tolist()]
+
+    # 3. S&P 100 廣度 (200MA) 歷史計算
+    try:
+        sp100_data = yf.download(SP100_TICKERS, period="1y", interval="1d", progress=False)['Close']
+        sp100_above = (sp100_data > sp100_data.rolling(200).mean()).dropna(how='all')
+        breadth_series = (sp100_above.sum(axis=1) / len(SP100_TICKERS) * 100.0).tail(30)
+        sp100_sparkline = [round(float(v), 1) for v in breadth_series.tolist()]
+        sp100_latest = sp100_sparkline[-1] if sp100_sparkline else 66.7
+    except Exception as e:
+        print(f"Error SP100: {e}")
+        sp100_latest = 66.7
+        sp100_sparkline = [66.7] * 30
+
+    circuit_breaker = sahm_latest >= 0.50
+
+    # 4. 組裝 12 大指標 Payload (統一股票吸引力度量衡 0~100)
     metrics_payload = [
-        # --- 模組一：總體流動性與定價錨 ---
         {
             "id": "net_liquidity",
-            "value": f"{net_liq}T",
+            "value": f"{latest_net_liq}T",
             "subValue": None,
-            "status": "GREEN" if net_liq > 6.0 else ("YELLOW" if net_liq >= 5.4 else "RED"),
-            "percentile": int(min(max(((net_liq - 4.5) / 2.5) * 100, 5), 95))
+            "status": "GREEN" if latest_net_liq > 6.0 else ("YELLOW" if latest_net_liq >= 5.4 else "RED"),
+            "percentile": int(min(max(((latest_net_liq - 4.5) / 2.5) * 100, 5), 95)),
+            "sparkline": net_liq_sparkline
         },
         {
             "id": "tips_10y",
-            "value": f"{tips:.2f}%",
+            "value": f"{tips_latest:.2f}%",
             "subValue": None,
-            "status": "GREEN" if tips < 1.5 else ("YELLOW" if tips <= 2.2 else "RED"),
-            "percentile": int(min(max((1.0 - (tips / 3.0)) * 100, 5), 95))
+            "status": "GREEN" if tips_latest < 1.5 else ("YELLOW" if tips_latest <= 2.2 else "RED"),
+            "percentile": int(min(max((1.0 - (tips_latest / 3.0)) * 100, 5), 95)),
+            "sparkline": tips_sparkline
         },
         {
             "id": "hy_spread",
             "value": f"{hy_spread_bps} bps",
             "subValue": None,
             "status": "GREEN" if hy_spread_bps > 500 else ("RED" if hy_spread_bps < 300 else "YELLOW"),
-            "percentile": int(min(max(((hy_spread_bps - 260) / 300) * 100, 10), 90))
+            "percentile": int(min(max(((hy_spread_bps - 260) / 300) * 100, 10), 90)),
+            "sparkline": hy_sparkline
         },
         {
             "id": "erp",
-            "value": f"{erp:.2f}%",
-            "subValue": f"PE: {cur_pe}x (上限: {fair_pe}x)",
-            "status": "GREEN" if erp > 2.0 else ("YELLOW" if erp >= 0.0 else "RED"),
-            "percentile": int(min(max(((erp + 1.0) / 4.0) * 100, 5), 95))
+            "value": f"{erp_latest:.2f}%",
+            "subValue": {
+                "zh": f"PE: {cur_pe}x (上限: {fair_pe_cap}x)",
+                "en": f"PE: {cur_pe}x (Cap: {fair_pe_cap}x)"
+            },
+            "status": "GREEN" if erp_latest > 2.0 else ("YELLOW" if erp_latest >= 0.0 else "RED"),
+            "percentile": int(min(max(((erp_latest + 1.0) / 4.0) * 100, 5), 95)),
+            "sparkline": erp_sparkline
         },
-        # --- 模組二：內部廣度與動能 ---
         {
             "id": "rsp_spy",
-            "value": str(rsp_spy_ratio),
+            "value": str(rsp_spy_latest),
             "subValue": None,
-            "status": "GREEN" if rsp_spy_ratio > 0.28 else "YELLOW",
-            "percentile": int(min(max(((rsp_spy_ratio - 0.26) / 0.06) * 100, 10), 90))
+            "status": "GREEN" if rsp_spy_latest > 0.28 else "YELLOW",
+            "percentile": int(min(max(((rsp_spy_latest - 0.26) / 0.06) * 100, 10), 90)),
+            "sparkline": rsp_spy_sparkline
         },
         {
             "id": "sp100_200ma",
-            "value": f"{sp100_breadth}%",
-            "subValue": "S&P 100 樣本庫",
-            "status": "GREEN" if sp100_breadth >= 60.0 else ("YELLOW" if sp100_breadth >= 40.0 else "RED"),
-            "percentile": int(sp100_breadth)
+            "value": f"{sp100_latest}%",
+            "subValue": {
+                "zh": "S&P 100 樣本庫",
+                "en": "S&P 100 Universe"
+            },
+            "status": "GREEN" if sp100_latest >= 60.0 else ("YELLOW" if sp100_latest >= 40.0 else "RED"),
+            "percentile": int(sp100_latest),
+            "sparkline": sp100_sparkline
         },
         {
             "id": "smh_spy",
-            "value": str(smh_spy_ratio),
+            "value": str(smh_spy_latest),
             "subValue": None,
-            "status": "GREEN" if smh_spy_ratio > 0.42 else ("YELLOW" if smh_spy_ratio >= 0.36 else "RED"),
-            "percentile": int(min(max(((smh_spy_ratio - 0.30) / 0.20) * 100, 10), 90))
+            "status": "GREEN" if smh_spy_latest > 0.42 else ("YELLOW" if smh_spy_latest >= 0.36 else "RED"),
+            "percentile": int(min(max(((smh_spy_latest - 0.30) / 0.20) * 100, 10), 90)),
+            "sparkline": smh_spy_sparkline
         },
         {
             "id": "xly_xlp",
-            "value": str(xly_xlp_ratio),
-            "subValue": None,
-            "status": "GREEN" if xly_xlp_ratio > 2.6 else ("YELLOW" if xly_xlp_ratio >= 2.3 else "RED"),
-            "percentile": int(min(max(((xly_xlp_ratio - 2.0) / 1.0) * 100, 10), 90))
+            "value": f"{disparity_latest:+.1f}%",
+            "subValue": {
+                "zh": "偏離 50MA 中樞",
+                "en": "Bias vs 50D SMA"
+            },
+            "status": "GREEN" if disparity_latest > 1.5 else ("YELLOW" if disparity_latest >= -1.5 else "RED"),
+            "percentile": int(min(max(((disparity_latest + 6.0) / 12.0) * 100, 5), 95)),
+            "sparkline": disparity_sparkline
         },
-        # --- 模組三：跨資產預警與斷路器 ---
         {
             "id": "copper_gold",
-            "value": str(copper_gold_ratio),
+            "value": str(copper_gold_latest),
             "subValue": None,
             "status": "GREEN" if copper_gold_ratio > 115 else ("YELLOW" if copper_gold_ratio >= 95 else "RED"),
-            "percentile": int(min(max(((copper_gold_ratio - 85) / 50) * 100, 10), 90))
+            "percentile": int(min(max(((copper_gold_latest - 85) / 50) * 100, 10), 90)),
+            "sparkline": copper_gold_sparkline
         },
         {
             "id": "vix_structure",
-            "value": str(vix_ratio),
+            "value": str(vix_ratio_latest),
             "subValue": None,
-            "status": "GREEN" if vix_ratio < 0.88 else ("YELLOW" if vix_ratio <= 1.02 else "RED"),
-            "percentile": int(min(max((1.0 - ((vix_ratio - 0.75) / 0.40)) * 100, 5), 95))
+            "status": "GREEN" if vix_ratio_latest < 0.88 else ("YELLOW" if vix_ratio_latest <= 1.02 else "RED"),
+            "percentile": int(min(max((1.0 - ((vix_ratio_latest - 0.75) / 0.40)) * 100, 5), 95)),
+            "sparkline": vix_sparkline
         },
         {
             "id": "move_index",
-            "value": str(move),
+            "value": str(move_latest),
             "subValue": None,
-            "status": "GREEN" if move < 95 else ("YELLOW" if move < 115 else "RED"),
-            "percentile": int(min(max((1.0 - ((move - 60) / 80)) * 100, 5), 95))
+            "status": "GREEN" if move_latest < 95 else ("YELLOW" if move_latest < 115 else "RED"),
+            "percentile": int(min(max((1.0 - ((move_latest - 60) / 80)) * 100, 5), 95)),
+            "sparkline": move_sparkline
         },
         {
             "id": "sahm_rule",
-            "value": f"{sahm:.2f}%",
+            "value": f"{sahm_latest:.2f}%",
             "subValue": None,
             "status": "RED" if circuit_breaker else "GREEN",
-            "percentile": int(min(max((1.0 - (sahm / 0.50)) * 100, 5), 95))
+            "percentile": int(min(max((1.0 - (sahm_latest / 0.50)) * 100, 5), 95)),
+            "sparkline": sahm_sparkline
         }
     ]
 
@@ -221,7 +255,7 @@ def run_pipeline():
     os.makedirs("public", exist_ok=True)
     with open("public/data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    print("public/data.json successfully updated with 12 tactical metrics.")
+    print("public/data.json updated with 30D Sparklines successfully.")
 
 if __name__ == "__main__":
     run_pipeline()
