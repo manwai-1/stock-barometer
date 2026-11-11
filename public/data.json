@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-10T03:42:27.421718+00:00",
+  "lastUpdated": "2026-11-11T01:21:52.025723+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
@@ -9,9 +9,9 @@
       "status": "YELLOW",
       "percentile": 51,
       "sparkline": [
-        6.0,
+        5.99,
         5.73,
-        5.75,
+        5.77,
         5.87,
         5.91,
         5.97,
@@ -33,7 +33,7 @@
         5.86,
         5.87,
         5.77,
-        5.79,
+        5.8,
         5.87,
         5.86,
         5.8,
@@ -44,12 +44,11 @@
     },
     {
       "id": "tips_10y",
-      "value": "2.63%",
+      "value": "2.66%",
       "subValue": null,
       "status": "RED",
-      "percentile": 12,
+      "percentile": 11,
       "sparkline": [
-        2.83,
         2.9,
         2.91,
         2.93,
@@ -78,18 +77,18 @@
         2.65,
         2.64,
         2.6,
-        2.63
+        2.63,
+        2.66
       ],
       "isFallback": false
     },
     {
       "id": "hy_spread",
-      "value": "342 bps",
+      "value": "334 bps",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 27,
+      "percentile": 24,
       "sparkline": [
-        302,
         308,
         312,
         324,
@@ -118,13 +117,14 @@
         340,
         332,
         348,
-        342
+        342,
+        334
       ],
       "isFallback": false
     },
     {
       "id": "erp",
-      "value": "-0.68%",
+      "value": "-0.70%",
       "subValue": {
         "zh": "PE: 23.9x (上限: 15.7x)",
         "en": "PE: 23.9x (Cap: 15.7x)"
@@ -132,7 +132,6 @@
       "status": "RED",
       "percentile": 7,
       "sparkline": [
-        -0.99,
         -1.06,
         -1.08,
         -1.11,
@@ -161,7 +160,8 @@
         -0.77,
         -0.72,
         -0.66,
-        -0.68
+        -0.68,
+        -0.7
       ],
       "isFallback": false
     },
@@ -207,15 +207,14 @@
     },
     {
       "id": "sp100_200ma",
-      "value": "80.0%",
+      "value": "0.0%",
       "subValue": {
         "zh": "核心權值樣本庫",
         "en": "Mega-Cap Universe"
       },
-      "status": "GREEN",
-      "percentile": 80,
+      "status": "RED",
+      "percentile": 0,
       "sparkline": [
-        80.0,
         73.3,
         66.7,
         73.3,
@@ -244,7 +243,8 @@
         80.0,
         73.3,
         73.3,
-        80.0
+        80.0,
+        0.0
       ],
       "isFallback": false
     },
@@ -413,12 +413,11 @@
     },
     {
       "id": "move_index",
-      "value": "85.98",
+      "value": "92.43",
       "subValue": null,
       "status": "GREEN",
-      "percentile": 67,
+      "percentile": 59,
       "sparkline": [
-        101.82,
         106.6,
         110.45,
         108.13,
@@ -447,7 +446,8 @@
         93.88,
         97.92,
         92.77,
-        85.98
+        85.98,
+        92.43
       ],
       "isFallback": false
     },
