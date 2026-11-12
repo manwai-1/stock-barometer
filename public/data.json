@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-12T02:22:49.636001+00:00",
+  "lastUpdated": "2026-11-12T10:29:46.383799+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
@@ -167,12 +167,11 @@
     },
     {
       "id": "rsp_spy",
-      "value": "0.2945",
+      "value": "0.293",
       "subValue": null,
       "status": "GREEN",
-      "percentile": 57,
+      "percentile": 54,
       "sparkline": [
-        0.2728,
         0.2736,
         0.2725,
         0.2725,
@@ -201,19 +200,20 @@
         0.2959,
         0.2938,
         0.2935,
-        0.2945
+        0.2945,
+        0.293
       ],
       "isFallback": false
     },
     {
       "id": "sp100_200ma",
-      "value": "0.0%",
+      "value": "80.0%",
       "subValue": {
         "zh": "核心權值樣本庫",
         "en": "Mega-Cap Universe"
       },
-      "status": "RED",
-      "percentile": 0,
+      "status": "GREEN",
+      "percentile": 80,
       "sparkline": [
         66.7,
         73.3,
@@ -244,18 +244,17 @@
         73.3,
         80.0,
         80.0,
-        0.0
+        80.0
       ],
       "isFallback": false
     },
     {
       "id": "smh_spy",
-      "value": "0.645",
+      "value": "0.667",
       "subValue": null,
       "status": "GREEN",
       "percentile": 90,
       "sparkline": [
-        0.799,
         0.809,
         0.819,
         0.818,
@@ -284,21 +283,21 @@
         0.611,
         0.631,
         0.648,
-        0.645
+        0.645,
+        0.667
       ],
       "isFallback": false
     },
     {
       "id": "xly_xlp",
-      "value": "-0.3%",
+      "value": "-0.7%",
       "subValue": {
         "zh": "偏離 50MA 中樞",
         "en": "Bias vs 50D SMA"
       },
       "status": "YELLOW",
-      "percentile": 47,
+      "percentile": 43,
       "sparkline": [
-        -0.65,
         -0.34,
         0.46,
         0.09,
@@ -327,18 +326,18 @@
         -3.55,
         -2.25,
         -0.23,
-        -0.27
+        -0.27,
+        -0.74
       ],
       "isFallback": false
     },
     {
       "id": "copper_gold",
-      "value": "102.2",
+      "value": "103.3",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 34,
+      "percentile": 36,
       "sparkline": [
-        104.5,
         103.2,
         104.0,
         105.0,
@@ -367,18 +366,18 @@
         99.5,
         101.1,
         101.3,
-        102.2
+        102.2,
+        103.3
       ],
       "isFallback": false
     },
     {
       "id": "vix_structure",
-      "value": "0.943",
+      "value": "0.909",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 51,
+      "percentile": 60,
       "sparkline": [
-        0.889,
         0.882,
         0.85,
         0.862,
@@ -407,7 +406,8 @@
         1.103,
         1.042,
         0.955,
-        0.943
+        0.943,
+        0.909
       ],
       "isFallback": false
     },
