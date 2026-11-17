@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-14T01:33:12.660742+00:00",
+  "lastUpdated": "2026-11-17T04:04:18.408169+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
@@ -44,12 +44,11 @@
     },
     {
       "id": "tips_10y",
-      "value": "2.86%",
+      "value": "2.91%",
       "subValue": null,
       "status": "RED",
       "percentile": 5,
       "sparkline": [
-        2.93,
         2.88,
         2.92,
         2.95,
@@ -78,19 +77,18 @@
         2.63,
         2.66,
         2.78,
-        2.86
+        2.86,
+        2.91
       ],
       "isFallback": false
     },
     {
       "id": "hy_spread",
-      "value": "320 bps",
+      "value": "323 bps",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 20,
+      "percentile": 21,
       "sparkline": [
-        324,
-        310,
         312,
         303,
         309,
@@ -118,61 +116,62 @@
         342,
         334,
         330,
-        320
+        330,
+        320,
+        323
       ],
       "isFallback": false
     },
     {
       "id": "erp",
-      "value": "-0.93%",
+      "value": "-0.89%",
       "subValue": {
-        "zh": "PE: 24.0x (上限: 15.2x)",
-        "en": "PE: 24.0x (Cap: 15.2x)"
+        "zh": "PE: 23.5x (上限: 15.0x)",
+        "en": "PE: 23.5x (Cap: 15.0x)"
       },
       "status": "RED",
       "percentile": 5,
       "sparkline": [
-        -1.12,
-        -1.07,
-        -1.11,
-        -1.14,
-        -1.1,
-        -1.11,
-        -1.05,
-        -1.07,
-        -1.04,
+        -0.98,
         -1.02,
-        -0.93,
-        -0.92,
+        -1.05,
+        -1.01,
+        -1.02,
+        -0.96,
         -0.98,
         -0.95,
-        -0.96,
-        -0.79,
+        -0.93,
+        -0.84,
         -0.83,
-        -0.83,
-        -0.82,
-        -0.88,
-        -0.81,
-        -0.77,
+        -0.89,
+        -0.86,
+        -0.87,
+        -0.7,
         -0.74,
-        -0.78,
+        -0.74,
         -0.73,
-        -0.67,
+        -0.79,
+        -0.72,
+        -0.68,
+        -0.65,
         -0.69,
-        -0.71,
-        -0.81,
-        -0.93
+        -0.64,
+        -0.58,
+        -0.6,
+        -0.62,
+        -0.72,
+        -0.84,
+        -0.89
       ],
       "isFallback": false
     },
     {
       "id": "rsp_spy",
-      "value": "0.2932",
+      "value": "0.2959",
       "subValue": null,
       "status": "GREEN",
-      "percentile": 55,
+      "percentile": 59,
       "sparkline": [
-        0.2725,
         0.2725,
         0.271,
         0.2738,
@@ -201,21 +200,21 @@
         0.2945,
         0.293,
         0.2915,
-        0.2932
+        0.2932,
+        0.2959
       ],
       "isFallback": false
     },
     {
       "id": "sp100_200ma",
-      "value": "80.0%",
+      "value": "73.3%",
       "subValue": {
         "zh": "核心權值樣本庫",
         "en": "Mega-Cap Universe"
       },
       "status": "GREEN",
-      "percentile": 80,
+      "percentile": 73,
       "sparkline": [
-        73.3,
         80.0,
         80.0,
         80.0,
@@ -244,18 +243,18 @@
         80.0,
         80.0,
         80.0,
-        80.0
+        86.7,
+        73.3
       ],
       "isFallback": false
     },
     {
       "id": "smh_spy",
-      "value": "0.645",
+      "value": "0.624",
       "subValue": null,
       "status": "GREEN",
       "percentile": 90,
       "sparkline": [
-        0.818,
         0.812,
         0.804,
         0.785,
@@ -284,21 +283,21 @@
         0.645,
         0.667,
         0.663,
-        0.645
+        0.645,
+        0.624
       ],
       "isFallback": false
     },
     {
       "id": "xly_xlp",
-      "value": "-2.4%",
+      "value": "-4.0%",
       "subValue": {
         "zh": "偏離 50MA 中樞",
         "en": "Bias vs 50D SMA"
       },
       "status": "RED",
-      "percentile": 30,
+      "percentile": 16,
       "sparkline": [
-        0.09,
         0.23,
         -0.06,
         -1.9,
@@ -327,18 +326,18 @@
         -0.27,
         -0.74,
         -0.71,
-        -2.39
+        -2.39,
+        -4.01
       ],
       "isFallback": false
     },
     {
       "id": "copper_gold",
-      "value": "102.8",
+      "value": "102.1",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 35,
+      "percentile": 34,
       "sparkline": [
-        105.0,
         104.7,
         105.9,
         104.2,
@@ -367,19 +366,18 @@
         102.2,
         103.3,
         104.9,
-        102.8
+        102.8,
+        102.1
       ],
       "isFallback": false
     },
     {
       "id": "vix_structure",
-      "value": "0.932",
+      "value": "0.995",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 54,
+      "percentile": 38,
       "sparkline": [
-        0.85,
-        0.862,
         0.851,
         0.851,
         0.852,
@@ -407,18 +405,19 @@
         0.955,
         0.943,
         0.909,
-        0.932
+        0.932,
+        0.936,
+        0.995
       ],
       "isFallback": false
     },
     {
       "id": "move_index",
-      "value": "98.79",
+      "value": "101.28",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 51,
+      "percentile": 48,
       "sparkline": [
-        108.13,
         107.29,
         113.6,
         105.2,
@@ -447,7 +446,8 @@
         85.98,
         92.43,
         98.43,
-        98.79
+        98.79,
+        101.28
       ],
       "isFallback": false
     },
