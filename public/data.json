@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-18T03:00:34.423160+00:00",
+  "lastUpdated": "2026-11-19T02:43:06.200038+00:00",
   "circuitBreaker": false,
   "metrics": [
     {
@@ -10,7 +10,7 @@
       "percentile": 53,
       "sparkline": [
         5.75,
-        5.78,
+        5.77,
         5.88,
         5.92,
         5.98,
@@ -44,12 +44,11 @@
     },
     {
       "id": "tips_10y",
-      "value": "2.92%",
+      "value": "2.89%",
       "subValue": null,
       "status": "RED",
       "percentile": 5,
       "sparkline": [
-        2.92,
         2.95,
         2.91,
         2.92,
@@ -78,18 +77,18 @@
         2.78,
         2.86,
         2.91,
-        2.92
+        2.92,
+        2.89
       ],
       "isFallback": false
     },
     {
       "id": "hy_spread",
-      "value": "334 bps",
+      "value": "343 bps",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 24,
+      "percentile": 27,
       "sparkline": [
-        303,
         309,
         315,
         311,
@@ -118,61 +117,61 @@
         330,
         320,
         323,
-        334
+        334,
+        343
       ],
       "isFallback": false
     },
     {
       "id": "erp",
-      "value": "-0.83%",
+      "value": "-0.79%",
       "subValue": {
-        "zh": "PE: 23.3x (上限: 15.1x)",
-        "en": "PE: 23.3x (Cap: 15.1x)"
+        "zh": "PE: 23.2x (上限: 15.2x)",
+        "en": "PE: 23.2x (Cap: 15.2x)"
       },
       "status": "RED",
       "percentile": 5,
       "sparkline": [
-        -0.99,
-        -1.02,
-        -0.98,
-        -0.99,
+        -1.0,
+        -0.96,
+        -0.97,
+        -0.91,
         -0.93,
-        -0.95,
-        -0.92,
         -0.9,
-        -0.81,
-        -0.8,
-        -0.86,
-        -0.83,
+        -0.88,
+        -0.79,
+        -0.78,
         -0.84,
-        -0.67,
-        -0.71,
-        -0.71,
-        -0.7,
-        -0.76,
-        -0.69,
+        -0.81,
+        -0.82,
         -0.65,
-        -0.62,
-        -0.66,
-        -0.61,
+        -0.69,
+        -0.69,
+        -0.68,
+        -0.74,
+        -0.67,
+        -0.63,
+        -0.6,
+        -0.64,
+        -0.59,
+        -0.53,
         -0.55,
         -0.57,
-        -0.59,
-        -0.69,
+        -0.67,
+        -0.79,
+        -0.84,
         -0.81,
-        -0.86,
-        -0.83
+        -0.79
       ],
       "isFallback": false
     },
     {
       "id": "rsp_spy",
-      "value": "0.2946",
+      "value": "0.295",
       "subValue": null,
       "status": "GREEN",
-      "percentile": 57,
+      "percentile": 58,
       "sparkline": [
-        0.271,
         0.2738,
         0.2736,
         0.274,
@@ -201,7 +200,8 @@
         0.2915,
         0.2932,
         0.2959,
-        0.2946
+        0.2946,
+        0.295
       ],
       "isFallback": false
     },
@@ -219,7 +219,6 @@
         80.0,
         80.0,
         80.0,
-        80.0,
         86.7,
         86.7,
         86.7,
@@ -243,6 +242,7 @@
         80.0,
         80.0,
         86.7,
+        73.3,
         73.3,
         73.3
       ],
@@ -250,12 +250,11 @@
     },
     {
       "id": "smh_spy",
-      "value": "0.628",
+      "value": "0.629",
       "subValue": null,
       "status": "GREEN",
       "percentile": 90,
       "sparkline": [
-        0.804,
         0.785,
         0.775,
         0.76,
@@ -284,21 +283,21 @@
         0.663,
         0.645,
         0.624,
-        0.628
+        0.628,
+        0.629
       ],
       "isFallback": false
     },
     {
       "id": "xly_xlp",
-      "value": "-3.5%",
+      "value": "-1.4%",
       "subValue": {
         "zh": "偏離 50MA 中樞",
         "en": "Bias vs 50D SMA"
       },
-      "status": "RED",
-      "percentile": 20,
+      "status": "YELLOW",
+      "percentile": 38,
       "sparkline": [
-        -0.06,
         -1.9,
         -0.95,
         -2.55,
@@ -327,18 +326,18 @@
         -0.71,
         -2.39,
         -4.01,
-        -3.55
+        -3.55,
+        -1.44
       ],
       "isFallback": false
     },
     {
       "id": "copper_gold",
-      "value": "102.1",
+      "value": "99.9",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 34,
+      "percentile": 29,
       "sparkline": [
-        105.9,
         104.2,
         104.8,
         106.3,
@@ -367,18 +366,18 @@
         104.9,
         102.8,
         102.1,
-        102.1
+        102.1,
+        99.9
       ],
       "isFallback": false
     },
     {
       "id": "vix_structure",
-      "value": "1.019",
+      "value": "1.011",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 32,
+      "percentile": 34,
       "sparkline": [
-        0.851,
         0.852,
         0.835,
         0.848,
@@ -407,18 +406,18 @@
         0.932,
         0.936,
         0.995,
-        1.019
+        1.019,
+        1.011
       ],
       "isFallback": false
     },
     {
       "id": "move_index",
-      "value": "101.88",
+      "value": "98.15",
       "subValue": null,
       "status": "YELLOW",
-      "percentile": 47,
+      "percentile": 52,
       "sparkline": [
-        113.6,
         105.2,
         102.56,
         100.7,
@@ -447,7 +446,8 @@
         98.43,
         98.79,
         101.28,
-        101.88
+        101.88,
+        98.15
       ],
       "isFallback": false
     },
